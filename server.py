@@ -1,14 +1,13 @@
 import os
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 import google.generativeai as genai
 from PIL import Image
-import io
 
 app = Flask(__name__)
 
-# کلید API در متغیر محیطی (محلی)
+# کلید API از متغیر محیطی
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
@@ -16,10 +15,12 @@ def analyze():
         return jsonify({"error": "No image provided"}), 400
 
     file = request.files['image']
-    prompt = request.form.get("prompt", "What is in this picture?")
+    prompt = request.form.get("prompt")  # پرامپت از آردینو
+
+    if not prompt:
+        return jsonify({"error": "No prompt provided"}), 400
 
     try:
-        # باز کردن تصویر
         img = Image.open(file.stream)
         response = model.generate_content([img, prompt])
         return jsonify({"answer": response.text})
